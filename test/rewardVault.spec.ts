@@ -207,7 +207,7 @@ describe("RewardVault", function () {
     }
   });
 
-  it.only("native token test", async () => {
+  it("native token test", async () => {
     const { rewardVault, signer, owner, chainId, user, projectOwner } =
       await loadFixture(fixture);
 
