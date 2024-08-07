@@ -71,8 +71,9 @@ contract RewardVault is
         uint256 balanceBefore = LibToken.getBalanceOf(depositParam.token);
         LibToken.deposit(depositParam.token, depositParam.amount);
         // actual used token amount due to the transfer
-        uint256 actualAmount = LibToken.getBalanceOf(depositParam.token) -
-            balanceBefore;
+        uint256 actualAmount = LibToken.isNativeToken(depositParam.token)
+            ? msg.value
+            : LibToken.getBalanceOf(depositParam.token) - balanceBefore;
 
         allProjectBalances[depositParam.projectId][
             depositParam.token

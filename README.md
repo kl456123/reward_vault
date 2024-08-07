@@ -3,6 +3,7 @@
 ## Demo
 
 deploy and execute basic operations
+
 ```shell
 # deploy reward vault
 yarn hardhat ignition deploy ./ignition/modules/RewardVault.ts --parameters ./ignition/parameters.json
@@ -14,9 +15,10 @@ yarn hardhat ignition deploy ./ignition/modules/MockToken.ts
 yarn hardhat run scripts/demo.ts
 ```
 
-
 ## Test
+
 run test
+
 ```bash
 yarn hardhat test
 ```

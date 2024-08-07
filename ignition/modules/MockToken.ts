@@ -1,6 +1,6 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { ethers } from "ethers";
-import {RewardVaultModule} from "./RewardVault";
+import { RewardVaultModule } from "./RewardVault";
 
 const MockTokenModule = buildModule("MockToken", (m) => {
   const mockToken = m.contract("MockToken", [ethers.parseUnits("1000000", 18)]);

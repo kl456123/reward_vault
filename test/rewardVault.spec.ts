@@ -41,7 +41,7 @@ describe("RewardVault", function () {
     };
   }
 
-  it("basic test", async () => {
+  it("erc20 token test", async () => {
     const {
       rewardVault,
       signer,
@@ -204,6 +204,178 @@ describe("RewardVault", function () {
       expect(projectBalanceBefore - projectBalanceAfter).to.eq(
         withdrawalData.amount
       );
+    }
+  });
+
+  it.only("native token test", async () => {
+    const { rewardVault, signer, owner, chainId, user, projectOwner } =
+      await loadFixture(fixture);
+
+    const nativeTokenAddr = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
+
+    {
+      // project owner deposit to reward vault
+      const depositData = {
+        depositId: 0n,
+        projectId: 0n,
+        token: nativeTokenAddr,
+        amount: ethers.parseUnits("100", 18),
+        expireTime: BigInt(Math.ceil(Date.now() / 1000) + 10),
+      };
+
+      const depositSignature = await generateSignature(
+        ActionType.Deposit,
+        depositData,
+        signer,
+        await rewardVault.getAddress(),
+        chainId
+      );
+
+      const balanceBefore = await ethers.provider.getBalance(projectOwner);
+      const vaultBalanceBefore = await ethers.provider.getBalance(rewardVault);
+      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
+        depositData.projectId,
+        nativeTokenAddr
+      );
+      const tx = await rewardVault
+        .connect(projectOwner)
+        .deposit(
+          { ...depositData, signature: depositSignature },
+          { value: depositData.amount }
+        );
+      const txRecipient = await tx.wait();
+
+      const balanceAfter = await ethers.provider.getBalance(projectOwner);
+      const vaultBalanceAfter = await ethers.provider.getBalance(rewardVault);
+      const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
+        depositData.projectId,
+        nativeTokenAddr
+      );
+      expect(balanceBefore - balanceAfter).to.eq(
+        depositData.amount + txRecipient.gasUsed * BigInt(txRecipient.gasPrice)
+      );
+      expect(vaultBalanceAfter - vaultBalanceBefore).to.eq(depositData.amount);
+      expect(projectBalanceAfter - projectBalanceBefore).to.eq(
+        depositData.amount
+      );
+
+      await expect(
+        rewardVault
+          .connect(projectOwner)
+          .deposit(
+            { ...depositData, signature: depositSignature },
+            { value: depositData.amount }
+          )
+      ).to.revertedWith("SIGNATURE_USED_ALREADY");
+    }
+
+    // claim by user
+    {
+      const claimData = {
+        claimId: 0n,
+        projectId: 0n,
+        token: nativeTokenAddr,
+        amount: ethers.parseUnits("20", 18),
+        recipient: user.address,
+        expireTime: BigInt(Math.ceil(Date.now() / 1000) + 10),
+      };
+
+      const claimSignature = await generateSignature(
+        ActionType.Claim,
+        claimData,
+        signer,
+        await rewardVault.getAddress(),
+        chainId
+      );
+      // balance before
+      const userBalanceBefore = await ethers.provider.getBalance(user);
+      const vaultBalanceBefore = await ethers.provider.getBalance(rewardVault);
+      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
+        claimData.projectId,
+        nativeTokenAddr
+      );
+      const tx = await rewardVault
+        .connect(user)
+        .claim({ ...claimData, signature: claimSignature });
+      const txRecipient = await tx.wait();
+
+      // balance after
+      const userBalanceAfter = await ethers.provider.getBalance(user);
+      const vaultBalanceAfter = await ethers.provider.getBalance(rewardVault);
+      const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
+        claimData.projectId,
+        nativeTokenAddr
+      );
+      expect(userBalanceAfter - userBalanceBefore).to.eq(
+        claimData.amount - txRecipient.gasUsed * BigInt(txRecipient.gasPrice)
+      );
+
+      expect(vaultBalanceBefore - vaultBalanceAfter).to.eq(claimData.amount);
+      expect(projectBalanceBefore - projectBalanceAfter).to.eq(
+        claimData.amount
+      );
+
+      await expect(
+        rewardVault
+          .connect(user)
+          .claim({ ...claimData, signature: claimSignature })
+      ).to.revertedWith("SIGNATURE_USED_ALREADY");
+    }
+
+    // withdraw remaining tokens by project owner
+    {
+      const withdrawalData = {
+        withdrawId: 0n,
+        projectId: 0n,
+        token: nativeTokenAddr,
+        amount: ethers.parseUnits("40", 18),
+        recipient: projectOwner.address,
+        expireTime: BigInt(Math.ceil(Date.now() / 1000) + 10),
+      };
+
+      const withdrawalSignature = await generateSignature(
+        ActionType.Withdraw,
+        withdrawalData,
+        signer,
+        await rewardVault.getAddress(),
+        chainId
+      );
+      // balance before
+      const userBalanceBefore = await ethers.provider.getBalance(projectOwner);
+      const vaultBalanceBefore = await ethers.provider.getBalance(rewardVault);
+      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
+        withdrawalData.projectId,
+        nativeTokenAddr
+      );
+      const tx = await rewardVault
+        .connect(projectOwner)
+        .withdraw({ ...withdrawalData, signature: withdrawalSignature });
+      const txRecipient = await tx.wait();
+
+      // balance after
+      const userBalanceAfter = await ethers.provider.getBalance(projectOwner);
+      const vaultBalanceAfter = await ethers.provider.getBalance(rewardVault);
+      const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
+        withdrawalData.projectId,
+        nativeTokenAddr
+      );
+      expect(userBalanceAfter - userBalanceBefore).to.eq(
+        withdrawalData.amount -
+          txRecipient.gasUsed * BigInt(txRecipient.gasPrice)
+      );
+
+      expect(vaultBalanceBefore - vaultBalanceAfter).to.eq(
+        withdrawalData.amount
+      );
+      expect(projectBalanceBefore - projectBalanceAfter).to.eq(
+        withdrawalData.amount
+      );
+
+      await expect(
+        rewardVault
+          .connect(projectOwner)
+          .withdraw({ ...withdrawalData, signature: withdrawalSignature })
+      ).to.revertedWith("SIGNATURE_USED_ALREADY");
     }
   });
 });
