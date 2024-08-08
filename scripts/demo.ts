@@ -5,6 +5,7 @@ import RewardVaultModule from "../ignition/modules/RewardVault";
 import MockTokenModule from "../ignition/modules/MockToken";
 import { generateSignature } from "../src/utils";
 import { ActionType } from "../src/types";
+import parameters from "../ignition/parameters.json";
 
 async function deposit(
   mockToken: Contract,
@@ -72,7 +73,7 @@ async function withdraw(
     token: await mockToken.getAddress(),
     amount: hre.ethers.parseUnits("40", 18),
     recipient: deployer.address,
-    expireTime: BigInt(Math.ceil(Date.now() / 1000) + 10),
+    expireTime: BigInt(Math.ceil(Date.now() / 1000) + 100),
   };
 
   const withdrawalSignature = await generateSignature(
@@ -92,11 +93,21 @@ async function withdraw(
 }
 
 async function main() {
-  const { rewardVault } = await hre.ignition.deploy(RewardVaultModule);
-  const { mockToken } = await hre.ignition.deploy(MockTokenModule);
+  const deploymentId = "chain-97-v2";
+  const { rewardVault } = await hre.ignition.deploy(RewardVaultModule, {
+    deploymentId,
+    parameters,
+  });
+  const { mockToken } = await hre.ignition.deploy(MockTokenModule, {
+    deploymentId,
+  });
   const [deployer] = await hre.ethers.getSigners();
   const { chainId } = await hre.ethers.provider.getNetwork();
 
+  const SIGNER_ROLE = await rewardVault.SIGNER_ROLE();
+  if (!(await rewardVault.hasRole(SIGNER_ROLE, deployer.address))) {
+    await (await rewardVault.grantRole(SIGNER_ROLE, deployer.address)).wait();
+  }
   await deposit(mockToken, deployer, chainId, rewardVault);
   await claim(mockToken, deployer, chainId, rewardVault);
   await withdraw(mockToken, deployer, chainId, rewardVault);

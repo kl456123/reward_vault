@@ -1,0 +1,546 @@
+import {
+  time,
+  loadFixture,
+} from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
+import { generateSignature } from "../src/utils";
+import { ActionType } from "../src/types";
+import DeployAndGrantRole from "../ignition/modules/RewardVault";
+import { expect } from "chai";
+import { ethers } from "hardhat";
+import hre from "hardhat";
+import { fixture, fixtureAfterDeposit } from "./helper/fixture";
+import {
+  generateMockData,
+  generateWithdrawalMockData,
+  generateClaimMockData,
+} from "./helper/mock_data";
+import { NATIVE_TOKEN_ADDR } from "../src/constants";
+import { getTxCostInETH } from "../src/utils";
+
+describe("reward vault spec test", () => {
+  describe("deposit test", () => {
+    it("project owner success to deposit erc20 tokens", async () => {
+      const { rewardVault, signer, mockToken, chainId, projectOwner } =
+        await loadFixture(fixture);
+      const { depositData: depositParam, depositSignature } =
+        await generateMockData(
+          await mockToken.getAddress(),
+          await rewardVault.getAddress(),
+          chainId,
+          signer
+        );
+      const balanceBefore = await mockToken.balanceOf(projectOwner);
+      const vaultBalanceBefore = await mockToken.balanceOf(rewardVault);
+      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
+        depositParam.projectId,
+        mockToken
+      );
+      await expect(
+        rewardVault
+          .connect(projectOwner)
+          .deposit({ ...depositParam, signature: depositSignature })
+      )
+        .to.emit(rewardVault, "TokenDeposited")
+        .withArgs(
+          depositParam.depositId,
+          depositParam.projectId,
+          depositParam.token,
+          depositParam.amount,
+          depositParam.expireTime
+        );
+
+      const balanceAfter = await mockToken.balanceOf(projectOwner);
+      const vaultBalanceAfter = await mockToken.balanceOf(rewardVault);
+      const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
+        depositParam.projectId,
+        mockToken
+      );
+      expect(balanceBefore - balanceAfter).to.eq(depositParam.amount);
+      expect(vaultBalanceAfter - vaultBalanceBefore).to.eq(depositParam.amount);
+      expect(projectBalanceAfter - projectBalanceBefore).to.eq(
+        depositParam.amount
+      );
+    });
+
+    it("project owner success to deposit native tokens", async () => {
+      const { rewardVault, signer, chainId, projectOwner } = await loadFixture(
+        fixture
+      );
+      const { depositData: depositParam, depositSignature } =
+        await generateMockData(
+          NATIVE_TOKEN_ADDR,
+          await rewardVault.getAddress(),
+          chainId,
+          signer
+        );
+
+      const balanceBefore = await ethers.provider.getBalance(projectOwner);
+      const vaultBalanceBefore = await ethers.provider.getBalance(rewardVault);
+      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
+        depositParam.projectId,
+        NATIVE_TOKEN_ADDR
+      );
+      const txPromise = rewardVault
+        .connect(projectOwner)
+        .deposit(
+          { ...depositParam, signature: depositSignature },
+          { value: depositParam.amount }
+        );
+      await expect(txPromise)
+        .to.emit(rewardVault, "TokenDeposited")
+        .withArgs(
+          depositParam.depositId,
+          depositParam.projectId,
+          depositParam.token,
+          depositParam.amount,
+          depositParam.expireTime
+        );
+      const txRecipt = (await (await txPromise).wait())!;
+      const gasCostInETH = getTxCostInETH(txRecipt);
+
+      const balanceAfter = await ethers.provider.getBalance(projectOwner);
+      const vaultBalanceAfter = await ethers.provider.getBalance(rewardVault);
+      const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
+        depositParam.projectId,
+        NATIVE_TOKEN_ADDR
+      );
+      expect(balanceBefore - balanceAfter).to.eq(
+        depositParam.amount + gasCostInETH
+      );
+      expect(vaultBalanceAfter - vaultBalanceBefore).to.eq(depositParam.amount);
+      expect(projectBalanceAfter - projectBalanceBefore).to.eq(
+        depositParam.amount
+      );
+    });
+
+    it("signature expiry", async () => {
+      const { rewardVault, signer, mockToken, chainId, projectOwner } =
+        await loadFixture(fixture);
+      const { depositData, depositSignature } = await generateMockData(
+        await mockToken.getAddress(),
+        await rewardVault.getAddress(),
+        chainId,
+        signer
+      );
+      // expiry signature
+      depositData.expireTime = BigInt(Math.ceil(Date.now() / 1000) - 100);
+
+      await expect(
+        rewardVault
+          .connect(projectOwner)
+          .deposit({ ...depositData, signature: depositSignature })
+      ).to.revertedWith("SIGNATURE_EXPIRY");
+    });
+
+    it("deposit eth too little", async () => {
+      const { rewardVault, signer, chainId, projectOwner } = await loadFixture(
+        fixture
+      );
+      const { depositData, depositSignature } = await generateMockData(
+        NATIVE_TOKEN_ADDR,
+        await rewardVault.getAddress(),
+        chainId,
+        signer
+      );
+
+      const balanceBefore = await ethers.provider.getBalance(projectOwner);
+      const vaultBalanceBefore = await ethers.provider.getBalance(rewardVault);
+      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
+        depositData.projectId,
+        NATIVE_TOKEN_ADDR
+      );
+      await expect(
+        rewardVault
+          .connect(projectOwner)
+          .deposit(
+            { ...depositData, signature: depositSignature },
+            { value: depositData.amount - 1n }
+          )
+      ).to.revertedWith("INSUFFIENT_ETH_AMOUNT");
+    });
+
+    it("return excess native tokens when deposit", async () => {
+      const { rewardVault, signer, chainId, projectOwner } = await loadFixture(
+        fixture
+      );
+      const { depositData, depositSignature } = await generateMockData(
+        NATIVE_TOKEN_ADDR,
+        await rewardVault.getAddress(),
+        chainId,
+        signer
+      );
+      const balanceBefore = await ethers.provider.getBalance(projectOwner);
+      const vaultBalanceBefore = await ethers.provider.getBalance(rewardVault);
+      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
+        depositData.projectId,
+        NATIVE_TOKEN_ADDR
+      );
+
+      const tx = await rewardVault
+        .connect(projectOwner)
+        .deposit(
+          { ...depositData, signature: depositSignature },
+          { value: depositData.amount + 1n }
+        );
+      const txRecipt = (await tx.wait())!;
+      const gasCostInETH = getTxCostInETH(txRecipt);
+      const balanceAfter = await ethers.provider.getBalance(projectOwner);
+
+      const vaultBalanceAfter = await ethers.provider.getBalance(rewardVault);
+      const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
+        depositData.projectId,
+        NATIVE_TOKEN_ADDR
+      );
+      // return 1 wei to project owner
+      expect(balanceBefore - balanceAfter).to.eq(
+        depositData.amount + gasCostInETH
+      );
+      expect(vaultBalanceAfter - vaultBalanceBefore).to.eq(depositData.amount);
+      expect(projectBalanceAfter - projectBalanceBefore).to.eq(
+        depositData.amount
+      );
+    });
+
+    it("revert when same signature is used again", async () => {
+      const { rewardVault, signer, mockToken, chainId, projectOwner } =
+        await loadFixture(fixture);
+      const { depositData, depositSignature } = await generateMockData(
+        await mockToken.getAddress(),
+        await rewardVault.getAddress(),
+        chainId,
+        signer
+      );
+      await rewardVault
+        .connect(projectOwner)
+        .deposit({ ...depositData, signature: depositSignature });
+
+      await expect(
+        rewardVault
+          .connect(projectOwner)
+          .deposit({ ...depositData, signature: depositSignature })
+      ).to.revertedWith("SIGNATURE_USED_ALREADY");
+    });
+
+    it("revert when invalid signature used", async () => {
+      const { rewardVault, mockToken, chainId, projectOwner } =
+        await loadFixture(fixture);
+      const fakeSigner = hre.ethers.Wallet.createRandom();
+      const { depositData, depositSignature } = await generateMockData(
+        await mockToken.getAddress(),
+        await rewardVault.getAddress(),
+        chainId,
+        fakeSigner
+      );
+      await expect(
+        rewardVault
+          .connect(projectOwner)
+          .deposit({ ...depositData, signature: depositSignature })
+      ).to.revertedWith("INVALID_SIGNER");
+    });
+  });
+
+  describe("withdraw test", () => {
+    it("project owner success to withdraw native tokens from reward vault", async () => {
+      const { projectOwner, mockToken, rewardVault, chainId, signer } =
+        await loadFixture(fixtureAfterDeposit);
+      const recipient = projectOwner.address;
+      const { withdrawalData, withdrawalSignature } =
+        await generateWithdrawalMockData(
+          recipient,
+          NATIVE_TOKEN_ADDR,
+          await rewardVault.getAddress(),
+          chainId,
+          signer
+        );
+      // balance before
+      const balanceBefore = await ethers.provider.getBalance(projectOwner);
+      const vaultBalanceBefore = await ethers.provider.getBalance(rewardVault);
+      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
+        withdrawalData.projectId,
+        NATIVE_TOKEN_ADDR
+      );
+      const txPromise = rewardVault
+        .connect(projectOwner)
+        .withdraw({ ...withdrawalData, signature: withdrawalSignature });
+      await expect(txPromise)
+        .to.emit(rewardVault, "TokenWithdrawed")
+        .withArgs(
+          withdrawalData.withdrawId,
+          withdrawalData.projectId,
+          withdrawalData.token,
+          withdrawalData.amount,
+          withdrawalData.recipient,
+          withdrawalData.expireTime
+        );
+
+      const txRecipt = (await (await txPromise).wait())!;
+      const gasCostInETH = getTxCostInETH(txRecipt);
+
+      // balance after
+      const balanceAfter = await ethers.provider.getBalance(projectOwner);
+      const vaultBalanceAfter = await ethers.provider.getBalance(rewardVault);
+      const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
+        withdrawalData.projectId,
+        NATIVE_TOKEN_ADDR
+      );
+      expect(balanceAfter - balanceBefore).to.eq(
+        withdrawalData.amount - gasCostInETH
+      );
+      expect(vaultBalanceBefore - vaultBalanceAfter).to.eq(
+        withdrawalData.amount
+      );
+      expect(projectBalanceBefore - projectBalanceAfter).to.eq(
+        withdrawalData.amount
+      );
+    });
+    it("project owner success to withdraw erc20 tokens from reward vault", async () => {
+      const { projectOwner, mockToken, rewardVault, chainId, signer } =
+        await loadFixture(fixtureAfterDeposit);
+      const recipient = projectOwner.address;
+      const { withdrawalData, withdrawalSignature } =
+        await generateWithdrawalMockData(
+          recipient,
+          await mockToken.getAddress(),
+          await rewardVault.getAddress(),
+          chainId,
+          signer
+        );
+      // balance before
+      const balanceBefore = await mockToken.balanceOf(projectOwner);
+      const vaultBalanceBefore = await mockToken.balanceOf(rewardVault);
+      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
+        withdrawalData.projectId,
+        mockToken
+      );
+      await expect(
+        rewardVault
+          .connect(projectOwner)
+          .withdraw({ ...withdrawalData, signature: withdrawalSignature })
+      )
+        .to.emit(rewardVault, "TokenWithdrawed")
+        .withArgs(
+          withdrawalData.withdrawId,
+          withdrawalData.projectId,
+          withdrawalData.token,
+          withdrawalData.amount,
+          withdrawalData.recipient,
+          withdrawalData.expireTime
+        );
+
+      // balance after
+      const balanceAfter = await mockToken.balanceOf(projectOwner);
+      const vaultBalanceAfter = await mockToken.balanceOf(rewardVault);
+      const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
+        withdrawalData.projectId,
+        mockToken
+      );
+      expect(balanceAfter - balanceBefore).to.eq(withdrawalData.amount);
+      expect(vaultBalanceBefore - vaultBalanceAfter).to.eq(
+        withdrawalData.amount
+      );
+      expect(projectBalanceBefore - projectBalanceAfter).to.eq(
+        withdrawalData.amount
+      );
+    });
+
+    it("revert when no enough tokens in reward vault", async () => {
+      const {
+        depositedMockTokenAmount,
+        depositedETHAmount,
+        projectOwner,
+        mockToken,
+        rewardVault,
+        chainId,
+        signer,
+      } = await loadFixture(fixtureAfterDeposit);
+      const recipient = projectOwner.address;
+      {
+        const { withdrawalData, withdrawalSignature } =
+          await generateWithdrawalMockData(
+            recipient,
+            await mockToken.getAddress(),
+            await rewardVault.getAddress(),
+            chainId,
+            signer
+          );
+
+        withdrawalData.amount = depositedMockTokenAmount + 1n;
+        await expect(
+          rewardVault
+            .connect(projectOwner)
+            .withdraw({ ...withdrawalData, signature: withdrawalSignature })
+        ).to.revertedWith("AMOUNT_EXCEED_BALANCE");
+      }
+      {
+        const { withdrawalData, withdrawalSignature } =
+          await generateWithdrawalMockData(
+            recipient,
+            NATIVE_TOKEN_ADDR,
+            await rewardVault.getAddress(),
+            chainId,
+            signer
+          );
+
+        withdrawalData.amount = depositedETHAmount + 1n;
+        await expect(
+          rewardVault
+            .connect(projectOwner)
+            .withdraw({ ...withdrawalData, signature: withdrawalSignature })
+        ).to.revertedWith("AMOUNT_EXCEED_BALANCE");
+      }
+    });
+
+    it("revert when signature expiry", async () => {
+      const { projectOwner, mockToken, rewardVault, chainId, signer } =
+        await loadFixture(fixtureAfterDeposit);
+      const recipient = projectOwner.address;
+      {
+        const { withdrawalData, withdrawalSignature } =
+          await generateWithdrawalMockData(
+            recipient,
+            await mockToken.getAddress(),
+            await rewardVault.getAddress(),
+            chainId,
+            signer
+          );
+
+        withdrawalData.expireTime = BigInt(Math.ceil(Date.now() / 1000) - 100);
+        await expect(
+          rewardVault
+            .connect(projectOwner)
+            .withdraw({ ...withdrawalData, signature: withdrawalSignature })
+        ).to.revertedWith("SIGNATURE_EXPIRY");
+      }
+    });
+
+    it("revert when same signature is used again", async () => {
+      const { projectOwner, mockToken, rewardVault, chainId, signer } =
+        await loadFixture(fixtureAfterDeposit);
+      const recipient = projectOwner.address;
+      const { withdrawalData, withdrawalSignature } =
+        await generateWithdrawalMockData(
+          recipient,
+          await mockToken.getAddress(),
+          await rewardVault.getAddress(),
+          chainId,
+          signer
+        );
+
+      await rewardVault
+        .connect(projectOwner)
+        .withdraw({ ...withdrawalData, signature: withdrawalSignature });
+      await expect(
+        rewardVault
+          .connect(projectOwner)
+          .withdraw({ ...withdrawalData, signature: withdrawalSignature })
+      ).to.revertedWith("SIGNATURE_USED_ALREADY");
+    });
+  });
+
+  describe("claim test", () => {
+    it("success to claim erc20 tokens by user", async () => {
+      const { projectOwner, mockToken, rewardVault, user, chainId, signer } =
+        await loadFixture(fixtureAfterDeposit);
+      const recipient = projectOwner.address;
+      const { claimData, claimSignature } = await generateClaimMockData(
+        recipient,
+        await mockToken.getAddress(),
+        await rewardVault.getAddress(),
+        chainId,
+        signer
+      );
+      // balance before
+      const userBalanceBefore = await mockToken.balanceOf(user);
+      const vaultBalanceBefore = await mockToken.balanceOf(rewardVault);
+      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
+        claimData.projectId,
+        mockToken
+      );
+      await expect(
+        rewardVault
+          .connect(user)
+          .claim({ ...claimData, signature: claimSignature })
+      )
+        .to.emit(rewardVault, "RewardsClaimed")
+        .withArgs(
+          claimData.claimId,
+          claimData.projectId,
+          claimData.token,
+          claimData.amount,
+          claimData.recipient,
+          claimData.expireTime
+        );
+
+      // balance after
+      const userBalanceAfter = await mockToken.balanceOf(user);
+      const vaultBalanceAfter = await mockToken.balanceOf(rewardVault);
+      const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
+        claimData.projectId,
+        mockToken
+      );
+      expect(userBalanceAfter - userBalanceBefore).to.eq(claimData.amount);
+
+      expect(vaultBalanceBefore - vaultBalanceAfter).to.eq(claimData.amount);
+      expect(projectBalanceBefore - projectBalanceAfter).to.eq(
+        claimData.amount
+      );
+    });
+  });
+
+  describe("admin operations test", () => {
+    it("permission managment test", async () => {
+      const { rewardVault, owner } = await loadFixture(fixture);
+      const newSigner = hre.ethers.Wallet.createRandom();
+      // check signer permission
+      const SIGNER_ROLE = await rewardVault.SIGNER();
+      expect(await rewardVault.hasRole(SIGNER_ROLE, newSigner)).to.be.false;
+      // grant role and validate
+      await rewardVault.connect(owner).grantRole(SIGNER_ROLE, newSigner);
+      expect(await rewardVault.hasRole(SIGNER_ROLE, newSigner)).to.be.true;
+      // revoke
+      await rewardVault.revokeRole(SIGNER_ROLE, newSigner);
+      expect(await rewardVault.hasRole(SIGNER_ROLE, newSigner)).to.be.false;
+    });
+
+    it("withdraw excess tokens by admin", async () => {
+      const {
+        depositedMockTokenAmount,
+        mockToken,
+        rewardVault,
+        owner,
+        user,
+        signer,
+      } = await loadFixture(fixtureAfterDeposit);
+
+      const amount = 1n;
+      const recipient = owner;
+      const balanceBefore = await mockToken.balanceOf(recipient);
+      await rewardVault
+        .connect(owner)
+        .withdrawExcessTokens(mockToken, amount, recipient);
+      const balanceAfter = await mockToken.balanceOf(recipient);
+      expect(balanceAfter - balanceBefore).to.eq(amount);
+
+      // cannot withdraw by other
+      await expect(
+        rewardVault
+          .connect(user)
+          .withdrawExcessTokens(mockToken, amount, recipient)
+      )
+        .to.revertedWithCustomError(rewardVault, "OwnableUnauthorizedAccount")
+        .withArgs(user.address);
+
+      // cannot withdraw too mch tokens
+      await expect(
+        rewardVault
+          .connect(owner)
+          .withdrawExcessTokens(
+            mockToken,
+            depositedMockTokenAmount + 1n,
+            recipient
+          )
+      ).to.be.reverted;
+    });
+  });
+});

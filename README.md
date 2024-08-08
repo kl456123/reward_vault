@@ -13,6 +13,9 @@ yarn hardhat ignition deploy ./ignition/modules/MockToken.ts
 
 # execute deposit, claim and withdraw txs
 yarn hardhat run scripts/demo.ts
+
+# verify code
+yarn hardhat ignition verify ${DEPLOYMENT_ID}
 ```
 
 ## Test

@@ -45,7 +45,7 @@ contract RewardVault is
     function deposit(
         DepositParam calldata depositParam
     ) external payable nonReentrant whenNotPaused {
-        require(block.timestamp < depositParam.expireTime, "SIGNATURE EXPIRY");
+        require(block.timestamp < depositParam.expireTime, "SIGNATURE_EXPIRY");
         // verify signature
         bytes32 digest = _hashTypedDataV4(
             keccak256(
@@ -69,11 +69,27 @@ contract RewardVault is
         usedSignatures[digest] = true;
 
         uint256 balanceBefore = LibToken.getBalanceOf(depositParam.token);
+        if (LibToken.isNativeToken(depositParam.token)) {
+            balanceBefore -= msg.value;
+        }
+
         LibToken.deposit(depositParam.token, depositParam.amount);
+
+        // return excess native tokens
+        if (
+            LibToken.isNativeToken(depositParam.token) &&
+            msg.value > depositParam.amount
+        ) {
+            LibToken.transferToken(
+                msg.sender,
+                LibToken.NATIVE_TOKEN,
+                msg.value - depositParam.amount
+            );
+        }
+
         // actual used token amount due to the transfer
-        uint256 actualAmount = LibToken.isNativeToken(depositParam.token)
-            ? msg.value
-            : LibToken.getBalanceOf(depositParam.token) - balanceBefore;
+        uint256 actualAmount = LibToken.getBalanceOf(depositParam.token) -
+            balanceBefore;
 
         allProjectBalances[depositParam.projectId][
             depositParam.token
@@ -94,14 +110,14 @@ contract RewardVault is
     ) external nonReentrant whenNotPaused {
         require(
             block.timestamp < withdrawalParam.expireTime,
-            "SIGNATURE EXPIRY"
+            "SIGNATURE_EXPIRY"
         );
         uint256 currentBalance = allProjectBalances[withdrawalParam.projectId][
             withdrawalParam.token
         ];
         require(
             currentBalance >= withdrawalParam.amount,
-            "amount exceed balance"
+            "AMOUNT_EXCEED_BALANCE"
         );
 
         // verify signature
@@ -164,7 +180,7 @@ contract RewardVault is
             claimParam.token
         ];
         // validate param and its signature
-        require(currentBalance >= claimParam.amount, "amount exceed balance");
+        require(currentBalance >= claimParam.amount, "AMOUNT_EXCEED_BALANCE");
 
         bytes32 digest = _hashTypedDataV4(
             keccak256(
@@ -214,8 +230,14 @@ contract RewardVault is
     ////////////////// admin ///////////////////////
     function withdrawExcessTokens(
         address token,
-        uint256 amount
-    ) external onlyOwner {}
+        uint256 amount,
+        address recipient
+    ) external onlyOwner {
+        // TODO: check amount
+        LibToken.transferToken(recipient, token, amount);
+        require(recipient != address(0), "ZERO_RECIPIENT");
+        emit TokenWithdrawedByAdmin(owner(), recipient, token, amount);
+    }
 
     function pause() external onlyOwner {
         _pause();

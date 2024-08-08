@@ -28,6 +28,13 @@ interface IRewardVault {
         uint256 expireTime
     );
 
+    event TokenWithdrawedByAdmin(
+        address withrawer,
+        address recipient,
+        address token,
+        uint256 amount
+    );
+
     struct DepositParam {
         uint256 depositId;
         uint256 projectId;

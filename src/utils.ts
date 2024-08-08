@@ -59,3 +59,10 @@ export async function generateSignature(
   const signature = await signer.signTypedData(domain, types, value);
   return signature;
 }
+
+export function getTxCostInETH(txRecipt: {
+  gasUsed: bigint;
+  gasPrice: bigint;
+}) {
+  return txRecipt.gasUsed * txRecipt.gasPrice;
+}
