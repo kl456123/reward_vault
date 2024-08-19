@@ -9,7 +9,7 @@ export async function generateMockData(
   signer: Signer
 ) {
   const depositData = {
-    depositId: 0n,
+    depositId: ethers.toBigInt(ethers.randomBytes(32)),
     projectId: 0n,
     token: tokenAddr,
     amount: ethers.parseUnits("100", 18),
@@ -34,7 +34,7 @@ export async function generateWithdrawalMockData(
   signer: Signer
 ) {
   const withdrawalData = {
-    withdrawId: 0n,
+    withdrawId: ethers.toBigInt(ethers.randomBytes(32)),
     projectId: 0n,
     token: tokenAddr,
     amount: ethers.parseUnits("40", 18),
@@ -61,7 +61,7 @@ export async function generateClaimMockData(
   signer: Signer
 ) {
   const claimData = {
-    claimId: 0n,
+    claimId: ethers.toBigInt(ethers.randomBytes(32)),
     projectId: 0n,
     token: tokenAddr,
     amount: ethers.parseUnits("20", 18),

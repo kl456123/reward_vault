@@ -6,6 +6,6 @@ contract RewardVaultStorage {
     mapping(uint256 => mapping(address token => uint256))
         internal allProjectBalances;
 
-    // hash => isUsed
-    mapping(bytes32 => bool) internal usedSignatures;
+    // hash => isRequestIdUsed
+    mapping(uint256 => bool) internal isRequestIdUsed;
 }

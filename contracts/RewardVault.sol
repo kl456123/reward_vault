@@ -60,13 +60,16 @@ contract RewardVault is
             )
         );
 
-        require(!usedSignatures[digest], "SIGNATURE_USED_ALREADY");
+        require(
+            !isRequestIdUsed[depositParam.depositId],
+            "SIGNATURE_USED_ALREADY"
+        );
         require(
             hasRole(SIGNER, digest.recover(depositParam.signature)),
             "INVALID_SIGNER"
         );
         // prevent from replay attack
-        usedSignatures[digest] = true;
+        isRequestIdUsed[depositParam.depositId] = true;
 
         uint256 balanceBefore = LibToken.getBalanceOf(depositParam.token);
         if (LibToken.isNativeToken(depositParam.token)) {
@@ -135,13 +138,16 @@ contract RewardVault is
             )
         );
 
-        require(!usedSignatures[digest], "SIGNATURE_USED_ALREADY");
+        require(
+            !isRequestIdUsed[withdrawalParam.withdrawId],
+            "SIGNATURE_USED_ALREADY"
+        );
         require(
             hasRole(SIGNER, digest.recover(withdrawalParam.signature)),
             "INVALID_SIGNER"
         );
         // prevent from replay attack
-        usedSignatures[digest] = true;
+        isRequestIdUsed[withdrawalParam.withdrawId] = true;
 
         // withdraw tokens to recipient
         uint256 balanceBefore = LibToken.getBalanceOf(withdrawalParam.token);
@@ -196,13 +202,13 @@ contract RewardVault is
             )
         );
 
-        require(!usedSignatures[digest], "SIGNATURE_USED_ALREADY");
+        require(!isRequestIdUsed[claimParam.claimId], "SIGNATURE_USED_ALREADY");
         require(
             hasRole(SIGNER, digest.recover(claimParam.signature)),
             "INVALID_SIGNER"
         );
         // prevent from replay attack
-        usedSignatures[digest] = true;
+        isRequestIdUsed[claimParam.claimId] = true;
 
         uint256 balanceBefore = LibToken.getBalanceOf(claimParam.token);
         LibToken.transferToken(msg.sender, claimParam.token, claimParam.amount);
@@ -249,8 +255,10 @@ contract RewardVault is
 
     //////////// view functions
 
-    function isUsedSignature(bytes32 hash) external view returns (bool) {
-        return usedSignatures[hash];
+    function getIsRequestIdUsed(
+        uint256 requestId
+    ) external view returns (bool) {
+        return isRequestIdUsed[requestId];
     }
 
     function getTokenBalanceByProjectId(

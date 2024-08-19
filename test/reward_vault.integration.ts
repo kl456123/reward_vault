@@ -26,7 +26,7 @@ describe("reward vault integration test", function () {
     {
       // project owner deposit to reward vault
       const depositData = {
-        depositId: 0n,
+        depositId: ethers.toBigInt(ethers.randomBytes(32)),
         projectId: 0n,
         token: await mockToken.getAddress(),
         amount: ethers.parseUnits("100", 18),
@@ -67,7 +67,7 @@ describe("reward vault integration test", function () {
     // claim by user
     {
       const claimData = {
-        claimId: 0n,
+        claimId: ethers.toBigInt(ethers.randomBytes(32)),
         projectId: 0n,
         token: await mockToken.getAddress(),
         amount: ethers.parseUnits("20", 18),
@@ -116,7 +116,7 @@ describe("reward vault integration test", function () {
     // withdraw remaining tokens by project owner
     {
       const withdrawalData = {
-        withdrawId: 0n,
+        withdrawId: ethers.toBigInt(ethers.randomBytes(32)),
         projectId: 0n,
         token: await mockToken.getAddress(),
         amount: ethers.parseUnits("40", 18),
@@ -175,7 +175,7 @@ describe("reward vault integration test", function () {
     {
       // project owner deposit to reward vault
       const depositData = {
-        depositId: 0n,
+        depositId: ethers.toBigInt(ethers.randomBytes(32)),
         projectId: 0n,
         token: nativeTokenAddr,
         amount: ethers.parseUnits("100", 18),
@@ -223,7 +223,7 @@ describe("reward vault integration test", function () {
     // claim by user
     {
       const claimData = {
-        claimId: 0n,
+        claimId: ethers.toBigInt(ethers.randomBytes(32)),
         projectId: 0n,
         token: nativeTokenAddr,
         amount: ethers.parseUnits("20", 18),
@@ -270,7 +270,7 @@ describe("reward vault integration test", function () {
     // withdraw remaining tokens by project owner
     {
       const withdrawalData = {
-        withdrawId: 0n,
+        withdrawId: ethers.toBigInt(ethers.randomBytes(32)),
         projectId: 0n,
         token: nativeTokenAddr,
         amount: ethers.parseUnits("40", 18),
