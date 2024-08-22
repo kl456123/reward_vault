@@ -6,6 +6,7 @@ import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { generateSignature } from "../src/utils";
 import { ActionType } from "../src/types";
 import DeployAndGrantRole from "../ignition/modules/RewardVault";
+import MockTokenModule from "../ignition/modules/MockToken";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import hre from "hardhat";
@@ -501,6 +502,56 @@ describe("reward vault spec test", () => {
       // revoke
       await rewardVault.revokeRole(SIGNER_ROLE, newSigner);
       expect(await rewardVault.hasRole(SIGNER_ROLE, newSigner)).to.be.false;
+    });
+
+    it("pause test", async () => {
+      const { rewardVault, signer, mockToken, chainId, projectOwner, user } =
+        await loadFixture(fixture);
+      const { depositData: depositParam, depositSignature } =
+        await generateMockData(
+          await mockToken.getAddress(),
+          await rewardVault.getAddress(),
+          chainId,
+          signer
+        );
+      await expect(rewardVault.connect(user).pause())
+        .to.revertedWithCustomError(rewardVault, "OwnableUnauthorizedAccount")
+        .withArgs(user.address);
+      await rewardVault.pause();
+      await expect(
+        rewardVault
+          .connect(projectOwner)
+          .deposit({ ...depositParam, signature: depositSignature })
+      ).to.revertedWithCustomError(rewardVault, "EnforcedPause");
+      await rewardVault.unpause();
+      await expect(
+        rewardVault
+          .connect(projectOwner)
+          .deposit({ ...depositParam, signature: depositSignature })
+      ).not.to.reverted;
+    });
+
+    it("upgrade test", async () => {
+      const { rewardVault, proxy, proxyAdmin, owner, user } = await loadFixture(
+        fixture
+      );
+
+      const { mockToken: newImpl } = await hre.ignition.deploy(
+        MockTokenModule,
+        {}
+      );
+      await expect(
+        proxyAdmin.connect(user).upgradeAndCall(proxy, newImpl, "0x")
+      )
+        .to.revertedWithCustomError(proxyAdmin, "OwnableUnauthorizedAccount")
+        .withArgs(user.address);
+      await proxyAdmin.upgradeAndCall(proxy, newImpl, "0x");
+      // all old methods are deprecated after upgrade
+      await expect(rewardVault.eip712Domain()).to.reverted;
+
+      const mockToken = await hre.ethers.getContractAt("MockToken", proxy);
+      // only token api is allowed now
+      await expect(mockToken.balanceOf(owner)).not.to.reverted;
     });
 
     it("withdraw excess tokens by admin", async () => {

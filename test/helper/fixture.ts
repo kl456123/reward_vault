@@ -11,13 +11,16 @@ import { NATIVE_TOKEN_ADDR } from "../../src/constants";
 
 export async function fixture() {
   const [owner, signer, projectOwner, user] = await hre.ethers.getSigners();
-  const { rewardVault } = await hre.ignition.deploy(DeployAndGrantRole, {
-    parameters: {
-      GrantRole: {
-        signer: signer.address,
+  const { rewardVault, proxy, proxyAdmin } = await hre.ignition.deploy(
+    DeployAndGrantRole,
+    {
+      parameters: {
+        GrantRole: {
+          signer: signer.address,
+        },
       },
-    },
-  });
+    }
+  );
   const mockToken = await (
     await hre.ethers.getContractFactory("MockToken")
   ).deploy(hre.ethers.parseUnits("1000000", 18));
@@ -38,6 +41,8 @@ export async function fixture() {
     chainId,
     user,
     projectOwner,
+    proxy,
+    proxyAdmin: await hre.ethers.getContractAt("ProxyAdmin", proxyAdmin),
   };
 }
 

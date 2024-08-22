@@ -1,23 +1,25 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 import {RewardVaultStorage} from "./RewardVaultStorage.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
-import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
-import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {EIP712Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {IRewardVault} from "./interfaces/IRewardVault.sol";
 import {LibToken} from "./libraries/LibToken.sol";
 
 contract RewardVault is
-    RewardVaultStorage,
-    Ownable,
-    AccessControl,
-    ReentrancyGuard,
     IRewardVault,
-    Pausable,
-    EIP712
+    RewardVaultStorage,
+    ReentrancyGuardUpgradeable,
+    AccessControlUpgradeable,
+    OwnableUpgradeable,
+    PausableUpgradeable,
+    EIP712Upgradeable
 {
     using ECDSA for bytes32;
 
@@ -37,7 +39,12 @@ contract RewardVault is
             "ClaimData(uint256 claimId,uint256 projectId,address token,uint256 amount,address recipient,uint256 expireTime)"
         );
 
-    constructor() Ownable(msg.sender) EIP712("binance reward vault", "0.1.0") {
+    function initialize() external initializer {
+        __Ownable_init(msg.sender);
+        __Pausable_init();
+        __ReentrancyGuard_init();
+        __AccessControl_init();
+        __EIP712_init("binance reward vault", "0.1.0");
         _grantRole(DEFAULT_ADMIN_ROLE, owner());
     }
 
