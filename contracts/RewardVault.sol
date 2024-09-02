@@ -218,7 +218,11 @@ contract RewardVault is
         isRequestIdUsed[claimParam.claimId] = true;
 
         uint256 balanceBefore = LibToken.getBalanceOf(claimParam.token);
-        LibToken.transferToken(msg.sender, claimParam.token, claimParam.amount);
+        LibToken.transferToken(
+            claimParam.recipient,
+            claimParam.token,
+            claimParam.amount
+        );
 
         // actual used token amount due to the transfer
         uint256 actualAmount = balanceBefore -

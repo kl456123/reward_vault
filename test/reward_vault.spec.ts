@@ -245,7 +245,7 @@ describe("reward vault spec test", () => {
     it("project owner success to withdraw native tokens from reward vault", async () => {
       const { projectOwner, mockToken, rewardVault, chainId, signer } =
         await loadFixture(fixtureAfterDeposit);
-      const recipient = projectOwner.address;
+      const recipient = ethers.Wallet.createRandom().address;
       const { withdrawalData, withdrawalSignature } =
         await generateWithdrawalMockData(
           recipient,
@@ -255,7 +255,7 @@ describe("reward vault spec test", () => {
           signer
         );
       // balance before
-      const balanceBefore = await ethers.provider.getBalance(projectOwner);
+      const balanceBefore = await ethers.provider.getBalance(recipient);
       const vaultBalanceBefore = await ethers.provider.getBalance(rewardVault);
       const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
         withdrawalData.projectId,
@@ -275,19 +275,14 @@ describe("reward vault spec test", () => {
           withdrawalData.expireTime
         );
 
-      const txRecipt = (await (await txPromise).wait())!;
-      const gasCostInETH = getTxCostInETH(txRecipt);
-
       // balance after
-      const balanceAfter = await ethers.provider.getBalance(projectOwner);
+      const balanceAfter = await ethers.provider.getBalance(recipient);
       const vaultBalanceAfter = await ethers.provider.getBalance(rewardVault);
       const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
         withdrawalData.projectId,
         NATIVE_TOKEN_ADDR
       );
-      expect(balanceAfter - balanceBefore).to.eq(
-        withdrawalData.amount - gasCostInETH
-      );
+      expect(balanceAfter - balanceBefore).to.eq(withdrawalData.amount);
       expect(vaultBalanceBefore - vaultBalanceAfter).to.eq(
         withdrawalData.amount
       );
@@ -298,7 +293,7 @@ describe("reward vault spec test", () => {
     it("project owner success to withdraw erc20 tokens from reward vault", async () => {
       const { projectOwner, mockToken, rewardVault, chainId, signer } =
         await loadFixture(fixtureAfterDeposit);
-      const recipient = projectOwner.address;
+      const recipient = ethers.Wallet.createRandom().address;
       const { withdrawalData, withdrawalSignature } =
         await generateWithdrawalMockData(
           recipient,
@@ -308,7 +303,7 @@ describe("reward vault spec test", () => {
           signer
         );
       // balance before
-      const balanceBefore = await mockToken.balanceOf(projectOwner);
+      const balanceBefore = await mockToken.balanceOf(recipient);
       const vaultBalanceBefore = await mockToken.balanceOf(rewardVault);
       const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
         withdrawalData.projectId,
@@ -330,7 +325,7 @@ describe("reward vault spec test", () => {
         );
 
       // balance after
-      const balanceAfter = await mockToken.balanceOf(projectOwner);
+      const balanceAfter = await mockToken.balanceOf(recipient);
       const vaultBalanceAfter = await mockToken.balanceOf(rewardVault);
       const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
         withdrawalData.projectId,
@@ -355,7 +350,7 @@ describe("reward vault spec test", () => {
         chainId,
         signer,
       } = await loadFixture(fixtureAfterDeposit);
-      const recipient = projectOwner.address;
+      const recipient = ethers.Wallet.createRandom().address;
       {
         const { withdrawalData, withdrawalSignature } =
           await generateWithdrawalMockData(
@@ -395,7 +390,7 @@ describe("reward vault spec test", () => {
     it("revert when signature expiry", async () => {
       const { projectOwner, mockToken, rewardVault, chainId, signer } =
         await loadFixture(fixtureAfterDeposit);
-      const recipient = projectOwner.address;
+      const recipient = ethers.Wallet.createRandom().address;
       {
         const { withdrawalData, withdrawalSignature } =
           await generateWithdrawalMockData(
@@ -418,7 +413,7 @@ describe("reward vault spec test", () => {
     it("revert when same signature is used again", async () => {
       const { projectOwner, mockToken, rewardVault, chainId, signer } =
         await loadFixture(fixtureAfterDeposit);
-      const recipient = projectOwner.address;
+      const recipient = ethers.Wallet.createRandom().address;
       const { withdrawalData, withdrawalSignature } =
         await generateWithdrawalMockData(
           recipient,
@@ -443,7 +438,7 @@ describe("reward vault spec test", () => {
     it("success to claim erc20 tokens by user", async () => {
       const { projectOwner, mockToken, rewardVault, user, chainId, signer } =
         await loadFixture(fixtureAfterDeposit);
-      const recipient = projectOwner.address;
+      const recipient = ethers.Wallet.createRandom().address;
       const { claimData, claimSignature } = await generateClaimMockData(
         recipient,
         await mockToken.getAddress(),
@@ -452,7 +447,7 @@ describe("reward vault spec test", () => {
         signer
       );
       // balance before
-      const userBalanceBefore = await mockToken.balanceOf(user);
+      const userBalanceBefore = await mockToken.balanceOf(recipient);
       const vaultBalanceBefore = await mockToken.balanceOf(rewardVault);
       const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
         claimData.projectId,
@@ -474,7 +469,7 @@ describe("reward vault spec test", () => {
         );
 
       // balance after
-      const userBalanceAfter = await mockToken.balanceOf(user);
+      const userBalanceAfter = await mockToken.balanceOf(recipient);
       const vaultBalanceAfter = await mockToken.balanceOf(rewardVault);
       const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
         claimData.projectId,
