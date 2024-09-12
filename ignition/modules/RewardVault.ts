@@ -1,13 +1,15 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 export const RewardVaultModule = buildModule("RewardVault", (m) => {
-  const proxyAdminOwner = m.getAccount(0);
+  const deployer = m.getAccount(0);
 
   const rewardVaultImpl = m.contract("RewardVault");
-  const initData = m.encodeFunctionCall(rewardVaultImpl, "initialize");
+  const initData = m.encodeFunctionCall(rewardVaultImpl, "initialize", [
+    deployer,
+  ]);
   const proxy = m.contract("TransparentUpgradeableProxy", [
     rewardVaultImpl,
-    proxyAdminOwner,
+    deployer,
     initData,
   ]);
   const proxyAdminAddress = m.readEventArgument(
@@ -24,10 +26,10 @@ export const RewardVaultModule = buildModule("RewardVault", (m) => {
 
 export default buildModule("GrantRole", (m) => {
   const { rewardVault, proxyAdmin, proxy } = m.useModule(RewardVaultModule);
-  const SIGNER_ROLE = m.staticCall(rewardVault, "SIGNER");
-  const signer = m.getParameter("signer");
+  // const SIGNER_ROLE = m.staticCall(rewardVault, "SIGNER");
+  // const signer = m.getParameter("signer");
 
   // grant role to signer
-  m.call(rewardVault, "grantRole", [SIGNER_ROLE, signer]);
+  // m.call(rewardVault, "grantRole", [SIGNER_ROLE, signer]);
   return { rewardVault, proxyAdmin, proxy };
 });

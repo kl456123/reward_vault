@@ -39,8 +39,8 @@ contract RewardVault is
             "ClaimData(uint256 claimId,uint256 projectId,address token,uint256 amount,address recipient,uint256 expireTime)"
         );
 
-    function initialize() external initializer {
-        __Ownable_init(msg.sender);
+    function initialize(address initialOwner) external initializer {
+        __Ownable_init(initialOwner);
         __Pausable_init();
         __ReentrancyGuard_init();
         __AccessControl_init();

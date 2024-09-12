@@ -1,0 +1,6 @@
+{
+  "RewardVault#RewardVault": "0x08a15B45C10CaA762ebd2fAe95768F0d93424CE9",
+  "RewardVault#TransparentUpgradeableProxy": "0x317Cd61fa24e2E4068b4C47Bd58D5fC9f4E7A12b",
+  "RewardVault#RewardVaultProxy": "0x317Cd61fa24e2E4068b4C47Bd58D5fC9f4E7A12b",
+  "RewardVault#ProxyAdmin": "0xf316b9bC1b8eE04688369AA065C9136797c358ed"
+}
