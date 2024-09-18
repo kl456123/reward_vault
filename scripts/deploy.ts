@@ -1,8 +1,8 @@
 import hre from "hardhat";
 import { Contract } from "ethers";
 import { type SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
-import RewardVaultModule from "../ignition/modules/RewardVault";
-import MockTokenModule from "../ignition/modules/MockToken";
+import RewardVaultModule from "../ignition/modules/grant_role";
+import MockTokenModule from "../ignition/modules/mock_token";
 import { generateSignature } from "../src/utils";
 import { ActionType } from "../src/types";
 import { NATIVE_TOKEN_ADDR } from "../src/constants";
@@ -10,7 +10,6 @@ import parameters from "../ignition/parameters.json";
 
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
-  const { chainId } = await hre.ethers.provider.getNetwork();
 
   const rewardVault = await (
     await hre.ethers.getContractFactory("RewardVault")

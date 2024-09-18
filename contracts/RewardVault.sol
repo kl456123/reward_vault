@@ -24,6 +24,7 @@ contract RewardVault is
     using ECDSA for bytes32;
 
     bytes32 public constant SIGNER = keccak256("SIGNER");
+    bytes32 public constant GUARDIAN = keccak256("GUARDIAN");
 
     // type hash
     bytes32 internal constant DEPOSIT_TYPEHASH =
@@ -256,11 +257,11 @@ contract RewardVault is
         emit TokenWithdrawedByAdmin(owner(), recipient, token, amount);
     }
 
-    function pause() external onlyOwner {
+    function pause() external onlyRole(GUARDIAN) {
         _pause();
     }
 
-    function unpause() external onlyOwner {
+    function unpause() external onlyRole(GUARDIAN) {
         _unpause();
     }
 

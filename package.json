@@ -27,6 +27,7 @@
     "@openzeppelin/contracts-upgradeable": "^5.0.2"
   },
   "scripts": {
+    "test": "hardhat test",
     "prettier": "prettier --write \"**/*.{js,json,md,sol,ts}\""
   }
 }

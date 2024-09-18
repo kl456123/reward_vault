@@ -5,8 +5,8 @@ import {
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { generateSignature } from "../src/utils";
 import { ActionType } from "../src/types";
-import DeployAndGrantRole from "../ignition/modules/RewardVault";
-import MockTokenModule from "../ignition/modules/MockToken";
+import DeployAndGrantRole from "../ignition/modules/reward_vault";
+import MockTokenModule from "../ignition/modules/mock_token";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import hre from "hardhat";
@@ -500,8 +500,15 @@ describe("reward vault spec test", () => {
     });
 
     it("pause test", async () => {
-      const { rewardVault, signer, mockToken, chainId, projectOwner, user } =
-        await loadFixture(fixture);
+      const {
+        rewardVault,
+        signer,
+        mockToken,
+        chainId,
+        projectOwner,
+        user,
+        guardian,
+      } = await loadFixture(fixture);
       const { depositData: depositParam, depositSignature } =
         await generateMockData(
           await mockToken.getAddress(),
@@ -510,15 +517,18 @@ describe("reward vault spec test", () => {
           signer
         );
       await expect(rewardVault.connect(user).pause())
-        .to.revertedWithCustomError(rewardVault, "OwnableUnauthorizedAccount")
-        .withArgs(user.address);
-      await rewardVault.pause();
+        .to.revertedWithCustomError(
+          rewardVault,
+          "AccessControlUnauthorizedAccount"
+        )
+        .withArgs(user.address, await rewardVault.GUARDIAN());
+      await rewardVault.connect(guardian).pause();
       await expect(
         rewardVault
           .connect(projectOwner)
           .deposit({ ...depositParam, signature: depositSignature })
       ).to.revertedWithCustomError(rewardVault, "EnforcedPause");
-      await rewardVault.unpause();
+      await rewardVault.connect(guardian).unpause();
       await expect(
         rewardVault
           .connect(projectOwner)

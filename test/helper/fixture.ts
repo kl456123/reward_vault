@@ -3,24 +3,25 @@ import {
   loadFixture,
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
-import DeployAndGrantRole from "../../ignition/modules/RewardVault";
+import DeployAndGrantRole from "../../ignition/modules/grant_role";
 import { RewardVault__factory } from "../../typechain-types";
 import hre from "hardhat";
 import { generateMockData } from "./mock_data";
 import { NATIVE_TOKEN_ADDR } from "../../src/constants";
 
 export async function fixture() {
-  const [owner, signer, projectOwner, user] = await hre.ethers.getSigners();
-  const { rewardVault, proxy, proxyAdmin } = await hre.ignition.deploy(
-    DeployAndGrantRole,
-    {
-      parameters: {
-        GrantRole: {
-          signer: signer.address,
-        },
+  const [owner, signer, guardian, projectOwner, user] =
+    await hre.ethers.getSigners();
+  const { proxy, proxyAdmin } = await hre.ignition.deploy(DeployAndGrantRole, {
+    parameters: {
+      GrantRole: {
+        signer: signer.address,
+        guardian: guardian.address,
       },
-    }
-  );
+    },
+  });
+  const rewardVault = await hre.ethers.getContractAt("RewardVault", proxy);
+
   const mockToken = await (
     await hre.ethers.getContractFactory("MockToken")
   ).deploy(hre.ethers.parseUnits("1000000", 18));
@@ -34,9 +35,10 @@ export async function fixture() {
     .approve(rewardVault, hre.ethers.MaxUint256);
 
   return {
-    rewardVault: await hre.ethers.getContractAt("RewardVault", rewardVault),
+    rewardVault,
     owner,
     signer,
+    guardian,
     mockToken,
     chainId,
     user,
