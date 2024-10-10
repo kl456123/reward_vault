@@ -1,4 +1,6 @@
 {
-  "RewardVault#RewardVault": "0x090060FcA5c2DC5F96e3EA2DB2Ea0CC4E39bB956",
-  "MockToken#MockToken": "0x989Fd3c04e8eA3679173A5A4f3a4853af9762f27"
+  "RewardVault#RewardVault": "0x7870F32cB5B8DfEa244AfE2E9aD0c0fef6cDa6Cb",
+  "RewardVault#TransparentUpgradeableProxy": "0x15a40246c9dCdF80D5ae58c791719D68a8C5576E",
+  "RewardVault#RewardVaultProxy": "0x15a40246c9dCdF80D5ae58c791719D68a8C5576E",
+  "RewardVault#ProxyAdmin": "0x41798f63d1cAae9Ce65AB492acd619451AB21E77"
 }
