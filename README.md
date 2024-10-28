@@ -39,11 +39,15 @@ all contracts with same addresses are deployed on these chains including
 
 contracts/EOA
 
+(the ownership of all contracts is transfered to security and finance team)
+
 - RewardVault: 0x7870F32cB5B8DfEa244AfE2E9aD0c0fef6cDa6Cb
 - TransparentUpgradeableProxy: 0x317Cd61fa24e2E4068b4C47Bd58D5fC9f4E7A12b
 - ProxyAdmin: 0xf316b9bC1b8eE04688369AA065C9136797c358ed
 - initOwner: 0xbD11861D13caFa8Ad6e143DA7034f8A907CD47a8
 - signer: 0x7fcbd9d429932a11884cb5ce9c61055b369f56f7
+- proxy owner: 0x44259777e66b1Ac57F19acfaAc1379B019c9bE99
+- reward vault owner: 0x3B1Ea58f0126e4D5731E1D37F425D7f892867507
 
 note that some contracts/EOA deployed on following chains have different addresses
 
@@ -60,5 +64,5 @@ note that some contracts/EOA deployed on following chains have different address
   - TransparentUpgradeableProxy: 0x15a40246c9dCdF80D5ae58c791719D68a8C5576E
   - ProxyAdmin: 0x41798f63d1cAae9Ce65AB492acd619451AB21E77
   - initOwner: 0xbD11861D13caFa8Ad6e143DA7034f8A907CD47a8
-  - signer: 0xbD11861D13caFa8Ad6e143DA7034f8A907CD47a8
+  - signer: 0x7fcbd9d429932a11884cb5ce9c61055b369f56f7
   - guardian: 0xbD11861D13caFa8Ad6e143DA7034f8A907CD47a8
