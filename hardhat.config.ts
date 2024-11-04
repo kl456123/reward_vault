@@ -45,6 +45,14 @@ const config: HardhatUserConfig = {
       accounts: [PRIVATE_KEY],
       // gasPrice: 1011
     },
+    sei: {
+      url: "https://evm-rpc.sei-apis.com",
+      accounts: [PRIVATE_KEY],
+    },
+    bera: {
+      url: "https://bartio.rpc.berachain.com/",
+      accounts: [PRIVATE_KEY],
+    },
   },
   etherscan: {
     apiKey: {
@@ -57,6 +65,8 @@ const config: HardhatUserConfig = {
       polygon: "SWZNZAZS9JU75B5WP3HEDSV3ZPQ9HFZSWI",
       opbnb: "PKEAHEUI9QJTBKW1TYSNXGEBR924T85KN5",
       sepolia: "9K1972CHBWVUHDIHH925J8Q9F9369RK6IH",
+      berachain_bartio: "berachain_bartio", // apiKey is not required, just set a placeholder
+      sei: "0f4a8c6a-8ad3-4492-b9fb-dbc31fe4cb2b",
     },
     customChains: [
       {
@@ -65,6 +75,23 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: "https://api-opbnb.bscscan.com/api",
           browserURL: "https://opbnb.bscscan.com",
+        },
+      },
+      {
+        network: "berachain_bartio",
+        chainId: 80084,
+        urls: {
+          apiURL:
+            "https://api.routescan.io/v2/network/testnet/evm/80084/etherscan",
+          browserURL: "https://bartio.beratrail.io",
+        },
+      },
+      {
+        network: "sei",
+        chainId: 1329,
+        urls: {
+          apiURL: "https://seitrace.com/pacific-1/api",
+          browserURL: "https://seitrace.com",
         },
       },
     ],
