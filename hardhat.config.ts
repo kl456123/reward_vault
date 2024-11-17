@@ -53,6 +53,31 @@ const config: HardhatUserConfig = {
       url: "https://bartio.rpc.berachain.com/",
       accounts: [PRIVATE_KEY],
     },
+    bitlayer: {
+      url: "https://rpc.bitlayer.org",
+      chainId: 200901,
+      accounts: [PRIVATE_KEY],
+    },
+    bitlayertestnet: {
+      url: "https://testnet-rpc.bitlayer.org",
+      chainId: 200810,
+      accounts: [PRIVATE_KEY],
+    },
+    zeta: {
+      chainId: 7000,
+      url: "https://zetachain-evm.blockpi.network/v1/rpc/public",
+      accounts: [PRIVATE_KEY],
+    },
+    zetatestnet: {
+      chainId: 7001,
+      url: "https://zetachain-athens-evm.blockpi.network/v1/rpc/public",
+      accounts: [PRIVATE_KEY],
+    },
+    storytestnet: {
+      url: "https://rpc.odyssey.storyrpc.io",
+      chainId: 1516,
+      accounts: [PRIVATE_KEY],
+    },
   },
   etherscan: {
     apiKey: {
@@ -65,8 +90,15 @@ const config: HardhatUserConfig = {
       polygon: "SWZNZAZS9JU75B5WP3HEDSV3ZPQ9HFZSWI",
       opbnb: "PKEAHEUI9QJTBKW1TYSNXGEBR924T85KN5",
       sepolia: "9K1972CHBWVUHDIHH925J8Q9F9369RK6IH",
-      berachain_bartio: "berachain_bartio", // apiKey is not required, just set a placeholder
       sei: "0f4a8c6a-8ad3-4492-b9fb-dbc31fe4cb2b",
+      // apiKey is not required, just set a placeholder
+      berachain_bartio: "berachain_bartio",
+      bitlayertestnet: "1234",
+      bitlayer: "1234",
+      zeta: "1234",
+      zetatestnet: "1234",
+      story: "1234",
+      storytestnet: "1234",
     },
     customChains: [
       {
@@ -92,6 +124,46 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: "https://seitrace.com/pacific-1/api",
           browserURL: "https://seitrace.com",
+        },
+      },
+      {
+        network: "bitlayertestnet",
+        chainId: 200810,
+        urls: {
+          apiURL: "https://api-testnet.btrscan.com/scan/api",
+          browserURL: "https://testnet.btrscan.com/",
+        },
+      },
+      {
+        network: "bitlayer",
+        chainId: 200901,
+        urls: {
+          apiURL: "https://api.btrscan.com/scan/api",
+          browserURL: "https://www.btrscan.com/",
+        },
+      },
+      {
+        network: "zeta",
+        chainId: 7001,
+        urls: {
+          apiURL: "",
+          browserURL: "https://explorer.zetachain.com/",
+        },
+      },
+      {
+        network: "zetatestenet",
+        chainId: 7000,
+        urls: {
+          apiURL: "",
+          browserURL: "https://athens.explorer.zetachain.com/",
+        },
+      },
+      {
+        network: "storytestnet",
+        chainId: 1516,
+        urls: {
+          apiURL: "https://odyssey.storyscan.xyz/api",
+          browserURL: "https://odyssey.storyscan.xyz/",
         },
       },
     ],
