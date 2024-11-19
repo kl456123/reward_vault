@@ -144,7 +144,7 @@ const config: HardhatUserConfig = {
       },
       {
         network: "zeta",
-        chainId: 7001,
+        chainId: 7000,
         urls: {
           apiURL: "",
           browserURL: "https://explorer.zetachain.com/",
@@ -152,7 +152,7 @@ const config: HardhatUserConfig = {
       },
       {
         network: "zetatestenet",
-        chainId: 7000,
+        chainId: 7001,
         urls: {
           apiURL: "",
           browserURL: "https://athens.explorer.zetachain.com/",
