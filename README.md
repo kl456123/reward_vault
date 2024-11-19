@@ -123,7 +123,17 @@ note that some contracts/EOA deployed on following chains have different address
   - signer: 0x7fcbd9d429932a11884cb5ce9c61055b369f56f7
   - guardian: 0xbD11861D13caFa8Ad6e143DA7034f8A907CD47a8
 
+- bitlayer_qa.mainnet
+
+  - RewardVault: 0xa74ba489390A011c3C7aB3a7fFe5c021d40b7AdD
+  - TransparentUpgradeableProxy: 0x5F8473c993B68df62780532D6477AC3D98Db2548
+  - ProxyAdmin: 0x37ee4145F686B0e339Ba888C652Ee547315fCFbd
+  - initOwner: 0xbD11861D13caFa8Ad6e143DA7034f8A907CD47a8
+  - signer: 0x7fcbd9d429932a11884cb5ce9c61055b369f56f7
+  - guardian: 0xbD11861D13caFa8Ad6e143DA7034f8A907CD47a8
+
 - zetachain.mainnet
+
   - RewardVault: 0x7870F32cB5B8DfEa244AfE2E9aD0c0fef6cDa6Cb
   - TransparentUpgradeableProxy: 0x15a40246c9dCdF80D5ae58c791719D68a8C5576E
   - ProxyAdmin: 0x41798f63d1cAae9Ce65AB492acd619451AB21E77
