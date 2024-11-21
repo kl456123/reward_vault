@@ -33,10 +33,6 @@ describe("reward vault spec test", () => {
         );
       const balanceBefore = await mockToken.balanceOf(projectOwner);
       const vaultBalanceBefore = await mockToken.balanceOf(rewardVault);
-      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
-        depositParam.projectId,
-        mockToken
-      );
       await expect(
         rewardVault
           .connect(projectOwner)
@@ -53,15 +49,8 @@ describe("reward vault spec test", () => {
 
       const balanceAfter = await mockToken.balanceOf(projectOwner);
       const vaultBalanceAfter = await mockToken.balanceOf(rewardVault);
-      const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
-        depositParam.projectId,
-        mockToken
-      );
       expect(balanceBefore - balanceAfter).to.eq(depositParam.amount);
       expect(vaultBalanceAfter - vaultBalanceBefore).to.eq(depositParam.amount);
-      expect(projectBalanceAfter - projectBalanceBefore).to.eq(
-        depositParam.amount
-      );
     });
 
     it("project owner success to deposit native tokens", async () => {
@@ -78,10 +67,6 @@ describe("reward vault spec test", () => {
 
       const balanceBefore = await ethers.provider.getBalance(projectOwner);
       const vaultBalanceBefore = await ethers.provider.getBalance(rewardVault);
-      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
-        depositParam.projectId,
-        NATIVE_TOKEN_ADDR
-      );
       const txPromise = rewardVault
         .connect(projectOwner)
         .deposit(
@@ -102,17 +87,10 @@ describe("reward vault spec test", () => {
 
       const balanceAfter = await ethers.provider.getBalance(projectOwner);
       const vaultBalanceAfter = await ethers.provider.getBalance(rewardVault);
-      const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
-        depositParam.projectId,
-        NATIVE_TOKEN_ADDR
-      );
       expect(balanceBefore - balanceAfter).to.eq(
         depositParam.amount + gasCostInETH
       );
       expect(vaultBalanceAfter - vaultBalanceBefore).to.eq(depositParam.amount);
-      expect(projectBalanceAfter - projectBalanceBefore).to.eq(
-        depositParam.amount
-      );
     });
 
     it("signature expiry", async () => {
@@ -147,10 +125,6 @@ describe("reward vault spec test", () => {
 
       const balanceBefore = await ethers.provider.getBalance(projectOwner);
       const vaultBalanceBefore = await ethers.provider.getBalance(rewardVault);
-      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
-        depositData.projectId,
-        NATIVE_TOKEN_ADDR
-      );
       await expect(
         rewardVault
           .connect(projectOwner)
@@ -173,11 +147,6 @@ describe("reward vault spec test", () => {
       );
       const balanceBefore = await ethers.provider.getBalance(projectOwner);
       const vaultBalanceBefore = await ethers.provider.getBalance(rewardVault);
-      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
-        depositData.projectId,
-        NATIVE_TOKEN_ADDR
-      );
-
       const tx = await rewardVault
         .connect(projectOwner)
         .deposit(
@@ -189,18 +158,11 @@ describe("reward vault spec test", () => {
       const balanceAfter = await ethers.provider.getBalance(projectOwner);
 
       const vaultBalanceAfter = await ethers.provider.getBalance(rewardVault);
-      const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
-        depositData.projectId,
-        NATIVE_TOKEN_ADDR
-      );
       // return 1 wei to project owner
       expect(balanceBefore - balanceAfter).to.eq(
         depositData.amount + gasCostInETH
       );
       expect(vaultBalanceAfter - vaultBalanceBefore).to.eq(depositData.amount);
-      expect(projectBalanceAfter - projectBalanceBefore).to.eq(
-        depositData.amount
-      );
     });
 
     it("revert when same signature is used again", async () => {
@@ -257,10 +219,6 @@ describe("reward vault spec test", () => {
       // balance before
       const balanceBefore = await ethers.provider.getBalance(recipient);
       const vaultBalanceBefore = await ethers.provider.getBalance(rewardVault);
-      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
-        withdrawalData.projectId,
-        NATIVE_TOKEN_ADDR
-      );
       const txPromise = rewardVault
         .connect(projectOwner)
         .withdraw({ ...withdrawalData, signature: withdrawalSignature });
@@ -278,15 +236,8 @@ describe("reward vault spec test", () => {
       // balance after
       const balanceAfter = await ethers.provider.getBalance(recipient);
       const vaultBalanceAfter = await ethers.provider.getBalance(rewardVault);
-      const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
-        withdrawalData.projectId,
-        NATIVE_TOKEN_ADDR
-      );
       expect(balanceAfter - balanceBefore).to.eq(withdrawalData.amount);
       expect(vaultBalanceBefore - vaultBalanceAfter).to.eq(
-        withdrawalData.amount
-      );
-      expect(projectBalanceBefore - projectBalanceAfter).to.eq(
         withdrawalData.amount
       );
     });
@@ -305,10 +256,6 @@ describe("reward vault spec test", () => {
       // balance before
       const balanceBefore = await mockToken.balanceOf(recipient);
       const vaultBalanceBefore = await mockToken.balanceOf(rewardVault);
-      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
-        withdrawalData.projectId,
-        mockToken
-      );
       await expect(
         rewardVault
           .connect(projectOwner)
@@ -327,15 +274,8 @@ describe("reward vault spec test", () => {
       // balance after
       const balanceAfter = await mockToken.balanceOf(recipient);
       const vaultBalanceAfter = await mockToken.balanceOf(rewardVault);
-      const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
-        withdrawalData.projectId,
-        mockToken
-      );
       expect(balanceAfter - balanceBefore).to.eq(withdrawalData.amount);
       expect(vaultBalanceBefore - vaultBalanceAfter).to.eq(
-        withdrawalData.amount
-      );
-      expect(projectBalanceBefore - projectBalanceAfter).to.eq(
         withdrawalData.amount
       );
     });
@@ -449,10 +389,6 @@ describe("reward vault spec test", () => {
       // balance before
       const userBalanceBefore = await mockToken.balanceOf(recipient);
       const vaultBalanceBefore = await mockToken.balanceOf(rewardVault);
-      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
-        claimData.projectId,
-        mockToken
-      );
       await expect(
         rewardVault
           .connect(user)
@@ -471,16 +407,9 @@ describe("reward vault spec test", () => {
       // balance after
       const userBalanceAfter = await mockToken.balanceOf(recipient);
       const vaultBalanceAfter = await mockToken.balanceOf(rewardVault);
-      const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
-        claimData.projectId,
-        mockToken
-      );
       expect(userBalanceAfter - userBalanceBefore).to.eq(claimData.amount);
 
       expect(vaultBalanceBefore - vaultBalanceAfter).to.eq(claimData.amount);
-      expect(projectBalanceBefore - projectBalanceAfter).to.eq(
-        claimData.amount
-      );
     });
   });
 

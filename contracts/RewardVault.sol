@@ -98,14 +98,6 @@ contract RewardVault is
             );
         }
 
-        // actual used token amount due to the transfer
-        uint256 actualAmount = LibToken.getBalanceOf(depositParam.token) -
-            balanceBefore;
-
-        allProjectBalances[depositParam.projectId][
-            depositParam.token
-        ] += actualAmount;
-
         emit TokenDeposited(
             depositParam.depositId,
             depositParam.projectId,
@@ -123,9 +115,7 @@ contract RewardVault is
             block.timestamp < withdrawalParam.expireTime,
             "SIGNATURE_EXPIRY"
         );
-        uint256 currentBalance = allProjectBalances[withdrawalParam.projectId][
-            withdrawalParam.token
-        ];
+        uint256 currentBalance = LibToken.getBalanceOf(withdrawalParam.token);
         require(
             currentBalance >= withdrawalParam.amount,
             "AMOUNT_EXCEED_BALANCE"
@@ -158,22 +148,11 @@ contract RewardVault is
         isRequestIdUsed[withdrawalParam.withdrawId] = true;
 
         // withdraw tokens to recipient
-        uint256 balanceBefore = LibToken.getBalanceOf(withdrawalParam.token);
         LibToken.transferToken(
             withdrawalParam.recipient,
             withdrawalParam.token,
             withdrawalParam.amount
         );
-
-        // actual used token amount due to the transfer
-        uint256 actualAmount = balanceBefore -
-            LibToken.getBalanceOf(withdrawalParam.token);
-
-        // update balance sheet
-        require(currentBalance >= actualAmount, "SLASH_TOO_MUCH");
-        allProjectBalances[withdrawalParam.projectId][withdrawalParam.token] =
-            currentBalance -
-            actualAmount;
 
         emit TokenWithdrawed(
             withdrawalParam.withdrawId,
@@ -190,9 +169,7 @@ contract RewardVault is
         ClaimParam calldata claimParam
     ) external nonReentrant whenNotPaused {
         require(block.timestamp < claimParam.expireTime, "SIGNATURE EXPIRY");
-        uint256 currentBalance = allProjectBalances[claimParam.projectId][
-            claimParam.token
-        ];
+        uint256 currentBalance = LibToken.getBalanceOf(claimParam.token);
         // validate param and its signature
         require(currentBalance >= claimParam.amount, "AMOUNT_EXCEED_BALANCE");
 
@@ -218,22 +195,11 @@ contract RewardVault is
         // prevent from replay attack
         isRequestIdUsed[claimParam.claimId] = true;
 
-        uint256 balanceBefore = LibToken.getBalanceOf(claimParam.token);
         LibToken.transferToken(
             claimParam.recipient,
             claimParam.token,
             claimParam.amount
         );
-
-        // actual used token amount due to the transfer
-        uint256 actualAmount = balanceBefore -
-            LibToken.getBalanceOf(claimParam.token);
-
-        // update balance sheet
-        require(currentBalance >= actualAmount, "SLASH_TOO_MUCH");
-        allProjectBalances[claimParam.projectId][claimParam.token] =
-            currentBalance -
-            actualAmount;
 
         emit RewardsClaimed(
             claimParam.claimId,
@@ -271,12 +237,5 @@ contract RewardVault is
         uint256 requestId
     ) external view returns (bool) {
         return isRequestIdUsed[requestId];
-    }
-
-    function getTokenBalanceByProjectId(
-        uint256 projectId,
-        address token
-    ) external view returns (uint256) {
-        return allProjectBalances[projectId][token];
     }
 }

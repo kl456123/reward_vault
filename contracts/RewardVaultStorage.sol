@@ -2,10 +2,6 @@
 pragma solidity ^0.8.24;
 
 contract RewardVaultStorage {
-    // projectId => token balance
-    mapping(uint256 => mapping(address token => uint256))
-        internal allProjectBalances;
-
     // hash => isRequestIdUsed
     mapping(uint256 => bool) internal isRequestIdUsed;
 }

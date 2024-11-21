@@ -6,9 +6,9 @@ async function main() {
 
   const rewardVault = await hre.ethers.getContractAt(
     "RewardVault",
-    "0x15a40246c9dCdF80D5ae58c791719D68a8C5576E"
+    "0x5F8473c993B68df62780532D6477AC3D98Db2548"
   );
-  const signer = "0x7fcbd9d429932a11884cb5ce9c61055b369f56f7";
+  const signer = "0xda942bcc2463297ea463774739a4008d1c98a436";
   const SIGNER_ROLE = await rewardVault.SIGNER();
   const hasRole = await rewardVault.hasRole(SIGNER_ROLE, signer);
   if (!hasRole) {

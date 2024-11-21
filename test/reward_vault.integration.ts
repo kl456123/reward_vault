@@ -43,25 +43,14 @@ describe("reward vault integration test", function () {
 
       const balanceBefore = await mockToken.balanceOf(projectOwner);
       const vaultBalanceBefore = await mockToken.balanceOf(rewardVault);
-      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
-        depositData.projectId,
-        mockToken
-      );
       await rewardVault
         .connect(projectOwner)
         .deposit({ ...depositData, signature: depositSignature });
 
       const balanceAfter = await mockToken.balanceOf(projectOwner);
       const vaultBalanceAfter = await mockToken.balanceOf(rewardVault);
-      const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
-        depositData.projectId,
-        mockToken
-      );
       expect(balanceBefore - balanceAfter).to.eq(depositData.amount);
       expect(vaultBalanceAfter - vaultBalanceBefore).to.eq(depositData.amount);
-      expect(projectBalanceAfter - projectBalanceBefore).to.eq(
-        depositData.amount
-      );
     }
 
     // claim by user
@@ -85,10 +74,6 @@ describe("reward vault integration test", function () {
       // balance before
       const userBalanceBefore = await mockToken.balanceOf(user);
       const vaultBalanceBefore = await mockToken.balanceOf(rewardVault);
-      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
-        claimData.projectId,
-        mockToken
-      );
       await rewardVault
         .connect(user)
         .claim({ ...claimData, signature: claimSignature });
@@ -101,16 +86,9 @@ describe("reward vault integration test", function () {
       // balance after
       const userBalanceAfter = await mockToken.balanceOf(user);
       const vaultBalanceAfter = await mockToken.balanceOf(rewardVault);
-      const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
-        claimData.projectId,
-        mockToken
-      );
       expect(userBalanceAfter - userBalanceBefore).to.eq(claimData.amount);
 
       expect(vaultBalanceBefore - vaultBalanceAfter).to.eq(claimData.amount);
-      expect(projectBalanceBefore - projectBalanceAfter).to.eq(
-        claimData.amount
-      );
     }
 
     // withdraw remaining tokens by project owner
@@ -134,10 +112,6 @@ describe("reward vault integration test", function () {
       // balance before
       const userBalanceBefore = await mockToken.balanceOf(projectOwner);
       const vaultBalanceBefore = await mockToken.balanceOf(rewardVault);
-      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
-        withdrawalData.projectId,
-        mockToken
-      );
       await rewardVault
         .connect(projectOwner)
         .withdraw({ ...withdrawalData, signature: withdrawalSignature });
@@ -151,16 +125,9 @@ describe("reward vault integration test", function () {
       // balance after
       const userBalanceAfter = await mockToken.balanceOf(projectOwner);
       const vaultBalanceAfter = await mockToken.balanceOf(rewardVault);
-      const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
-        withdrawalData.projectId,
-        mockToken
-      );
       expect(userBalanceAfter - userBalanceBefore).to.eq(withdrawalData.amount);
 
       expect(vaultBalanceBefore - vaultBalanceAfter).to.eq(
-        withdrawalData.amount
-      );
-      expect(projectBalanceBefore - projectBalanceAfter).to.eq(
         withdrawalData.amount
       );
     }
@@ -192,10 +159,6 @@ describe("reward vault integration test", function () {
 
       const balanceBefore = await ethers.provider.getBalance(projectOwner);
       const vaultBalanceBefore = await ethers.provider.getBalance(rewardVault);
-      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
-        depositData.projectId,
-        nativeTokenAddr
-      );
       const tx = await rewardVault
         .connect(projectOwner)
         .deposit(
@@ -207,17 +170,10 @@ describe("reward vault integration test", function () {
 
       const balanceAfter = await ethers.provider.getBalance(projectOwner);
       const vaultBalanceAfter = await ethers.provider.getBalance(rewardVault);
-      const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
-        depositData.projectId,
-        nativeTokenAddr
-      );
       expect(balanceBefore - balanceAfter).to.eq(
         depositData.amount + gasCostInETH
       );
       expect(vaultBalanceAfter - vaultBalanceBefore).to.eq(depositData.amount);
-      expect(projectBalanceAfter - projectBalanceBefore).to.eq(
-        depositData.amount
-      );
     }
 
     // claim by user
@@ -241,10 +197,6 @@ describe("reward vault integration test", function () {
       // balance before
       const userBalanceBefore = await ethers.provider.getBalance(user);
       const vaultBalanceBefore = await ethers.provider.getBalance(rewardVault);
-      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
-        claimData.projectId,
-        nativeTokenAddr
-      );
       const tx = await rewardVault
         .connect(user)
         .claim({ ...claimData, signature: claimSignature });
@@ -253,18 +205,11 @@ describe("reward vault integration test", function () {
       // balance after
       const userBalanceAfter = await ethers.provider.getBalance(user);
       const vaultBalanceAfter = await ethers.provider.getBalance(rewardVault);
-      const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
-        claimData.projectId,
-        nativeTokenAddr
-      );
       expect(userBalanceAfter - userBalanceBefore).to.eq(
         claimData.amount - getTxCostInETH(txRecipt)
       );
 
       expect(vaultBalanceBefore - vaultBalanceAfter).to.eq(claimData.amount);
-      expect(projectBalanceBefore - projectBalanceAfter).to.eq(
-        claimData.amount
-      );
     }
 
     // withdraw remaining tokens by project owner
@@ -288,10 +233,6 @@ describe("reward vault integration test", function () {
       // balance before
       const userBalanceBefore = await ethers.provider.getBalance(projectOwner);
       const vaultBalanceBefore = await ethers.provider.getBalance(rewardVault);
-      const projectBalanceBefore = await rewardVault.getTokenBalanceByProjectId(
-        withdrawalData.projectId,
-        nativeTokenAddr
-      );
       const tx = await rewardVault
         .connect(projectOwner)
         .withdraw({ ...withdrawalData, signature: withdrawalSignature });
@@ -300,18 +241,11 @@ describe("reward vault integration test", function () {
       // balance after
       const userBalanceAfter = await ethers.provider.getBalance(projectOwner);
       const vaultBalanceAfter = await ethers.provider.getBalance(rewardVault);
-      const projectBalanceAfter = await rewardVault.getTokenBalanceByProjectId(
-        withdrawalData.projectId,
-        nativeTokenAddr
-      );
       expect(userBalanceAfter - userBalanceBefore).to.eq(
         withdrawalData.amount - getTxCostInETH(txRecipt)
       );
 
       expect(vaultBalanceBefore - vaultBalanceAfter).to.eq(
-        withdrawalData.amount
-      );
-      expect(projectBalanceBefore - projectBalanceAfter).to.eq(
         withdrawalData.amount
       );
     }

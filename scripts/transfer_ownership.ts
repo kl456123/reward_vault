@@ -31,35 +31,37 @@ async function main() {
 
   // check signer role
   const SIGNER = await rewardVault.SIGNER();
-  if(await rewardVault.hasRole(SIGNER, deployer)) {
+  if (await rewardVault.hasRole(SIGNER, deployer)) {
     await (await rewardVault.renounceRole(SIGNER, deployer)).wait();
-    console.log(`success to revoke signer role from ${deployer.address}`)
+    console.log(`success to revoke signer role from ${deployer.address}`);
   } else {
-    console.log(`The signer role is revoked from ${deployer.address} already`)
+    console.log(`The signer role is revoked from ${deployer.address} already`);
   }
 
   const GUARDIAN = await rewardVault.GUARDIAN();
-  if(await rewardVault.hasRole(GUARDIAN, deployer)) {
+  if (await rewardVault.hasRole(GUARDIAN, deployer)) {
     await (await rewardVault.renounceRole(GUARDIAN, deployer)).wait();
-    console.log(`success to revoke guardian role from ${deployer.address}`)
+    console.log(`success to revoke guardian role from ${deployer.address}`);
   } else {
-    console.log(`The guardian role is revoked from ${deployer.address} already`)
+    console.log(
+      `The guardian role is revoked from ${deployer.address} already`
+    );
   }
 
   // check admin role
   const ADMIN_ROLE = await rewardVault.DEFAULT_ADMIN_ROLE();
-  if (!await rewardVault.hasRole(ADMIN_ROLE, newOwnerAddr)) {
+  if (!(await rewardVault.hasRole(ADMIN_ROLE, newOwnerAddr))) {
     await (await rewardVault.grantRole(ADMIN_ROLE, newOwnerAddr)).wait();
-    console.log(`success to grant admin role to ${newOwnerAddr}`)
+    console.log(`success to grant admin role to ${newOwnerAddr}`);
   } else {
-    console.log(`The admin role is granted to ${newOwnerAddr} already`)
+    console.log(`The admin role is granted to ${newOwnerAddr} already`);
   }
 
   if (await rewardVault.hasRole(ADMIN_ROLE, deployer)) {
     await (await rewardVault.renounceRole(ADMIN_ROLE, deployer)).wait();
-    console.log(`success to revoke admin role from ${deployer.address}`)
+    console.log(`success to revoke admin role from ${deployer.address}`);
   } else {
-    console.log(`The admin role is revoked from ${deployer.address} already`)
+    console.log(`The admin role is revoked from ${deployer.address} already`);
   }
 }
 
