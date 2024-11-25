@@ -15,6 +15,16 @@ export interface WithdrawalData {
   expireTime: bigint;
 }
 
+export interface WithdrawalV2Data {
+  withdrawId: bigint;
+  accountId: bigint;
+  actionType: number;
+  token: string;
+  amount: bigint;
+  recipient: string;
+  expireTime: bigint;
+}
+
 export interface ClaimData {
   claimId: bigint;
   projectId: bigint;
@@ -28,4 +38,5 @@ export enum ActionType {
   Deposit,
   Withdraw,
   Claim,
+  WithdrawV2,
 }

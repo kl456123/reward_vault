@@ -19,6 +19,16 @@ interface IRewardVault {
         uint256 expireTime
     );
 
+    event TokenWithdrawedV2(
+        uint256 indexed withdrawId,
+        uint256 indexed accountId,
+        uint8 indexed actionType,
+        address token,
+        uint256 amount,
+        address recipient,
+        uint256 expireTime
+    );
+
     event RewardsClaimed(
         uint256 indexed claimId,
         uint256 indexed projectId,
@@ -47,6 +57,17 @@ interface IRewardVault {
     struct WithdrawalParam {
         uint256 withdrawId;
         uint256 projectId;
+        address token;
+        uint256 amount;
+        address recipient;
+        uint256 expireTime;
+        bytes signature;
+    }
+
+    struct WithdrawalParamV2 {
+        uint256 withdrawId;
+        uint256 accountId;
+        uint8 actionType;
         address token;
         uint256 amount;
         address recipient;

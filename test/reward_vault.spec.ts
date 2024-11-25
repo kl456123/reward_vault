@@ -14,6 +14,7 @@ import { fixture, fixtureAfterDeposit } from "./helper/fixture";
 import {
   generateMockData,
   generateWithdrawalMockData,
+  generateWithdrawalV2MockData,
   generateClaimMockData,
 } from "./helper/mock_data";
 import { NATIVE_TOKEN_ADDR } from "../src/constants";
@@ -227,6 +228,45 @@ describe("reward vault spec test", () => {
         .withArgs(
           withdrawalData.withdrawId,
           withdrawalData.projectId,
+          withdrawalData.token,
+          withdrawalData.amount,
+          withdrawalData.recipient,
+          withdrawalData.expireTime
+        );
+
+      // balance after
+      const balanceAfter = await ethers.provider.getBalance(recipient);
+      const vaultBalanceAfter = await ethers.provider.getBalance(rewardVault);
+      expect(balanceAfter - balanceBefore).to.eq(withdrawalData.amount);
+      expect(vaultBalanceBefore - vaultBalanceAfter).to.eq(
+        withdrawalData.amount
+      );
+    });
+
+    it("project owner success to withdraw native tokens from reward vault by using new withdraw api", async () => {
+      const { projectOwner, mockToken, rewardVault, chainId, signer } =
+        await loadFixture(fixtureAfterDeposit);
+      const recipient = ethers.Wallet.createRandom().address;
+      const { withdrawalData, withdrawalSignature } =
+        await generateWithdrawalV2MockData(
+          recipient,
+          NATIVE_TOKEN_ADDR,
+          await rewardVault.getAddress(),
+          chainId,
+          signer
+        );
+      // balance before
+      const balanceBefore = await ethers.provider.getBalance(recipient);
+      const vaultBalanceBefore = await ethers.provider.getBalance(rewardVault);
+      const txPromise = rewardVault
+        .connect(projectOwner)
+        .withdrawV2({ ...withdrawalData, signature: withdrawalSignature });
+      await expect(txPromise)
+        .to.emit(rewardVault, "TokenWithdrawedV2")
+        .withArgs(
+          withdrawalData.withdrawId,
+          withdrawalData.accountId,
+          ActionType.WithdrawV2,
           withdrawalData.token,
           withdrawalData.amount,
           withdrawalData.recipient,

@@ -35,6 +35,10 @@ contract RewardVault is
         keccak256(
             "WithdrawalData(uint256 withdrawId,uint256 projectId,address token,uint256 amount,address recipient,uint256 expireTime)"
         );
+    bytes32 internal constant WITHDRAWALV2_TYPEHASH =
+        keccak256(
+            "WithdrawalData(uint256 withdrawId,uint256 accountId,uint8 actionType,address token,uint256 amount,address recipient,uint256 expireTime)"
+        );
     bytes32 internal constant CLAIM_TYPEHASH =
         keccak256(
             "ClaimData(uint256 claimId,uint256 projectId,address token,uint256 amount,address recipient,uint256 expireTime)"
@@ -208,6 +212,64 @@ contract RewardVault is
             claimParam.amount,
             claimParam.recipient,
             claimParam.expireTime
+        );
+    }
+
+    function withdrawV2(
+        WithdrawalParamV2 calldata withdrawalParam
+    ) external nonReentrant whenNotPaused {
+        require(
+            block.timestamp < withdrawalParam.expireTime,
+            "SIGNATURE_EXPIRY"
+        );
+        uint256 currentBalance = LibToken.getBalanceOf(withdrawalParam.token);
+        require(
+            currentBalance >= withdrawalParam.amount,
+            "AMOUNT_EXCEED_BALANCE"
+        );
+
+        // verify signature
+        bytes32 digest = _hashTypedDataV4(
+            keccak256(
+                abi.encode(
+                    WITHDRAWALV2_TYPEHASH,
+                    withdrawalParam.withdrawId,
+                    withdrawalParam.accountId,
+                    withdrawalParam.actionType,
+                    withdrawalParam.token,
+                    withdrawalParam.amount,
+                    withdrawalParam.recipient,
+                    withdrawalParam.expireTime
+                )
+            )
+        );
+
+        require(
+            !isRequestIdUsed[withdrawalParam.withdrawId],
+            "SIGNATURE_USED_ALREADY"
+        );
+        require(
+            hasRole(SIGNER, digest.recover(withdrawalParam.signature)),
+            "INVALID_SIGNER"
+        );
+        // prevent from replay attack
+        isRequestIdUsed[withdrawalParam.withdrawId] = true;
+
+        // withdraw tokens to recipient
+        LibToken.transferToken(
+            withdrawalParam.recipient,
+            withdrawalParam.token,
+            withdrawalParam.amount
+        );
+
+        emit TokenWithdrawedV2(
+            withdrawalParam.withdrawId,
+            withdrawalParam.accountId,
+            withdrawalParam.actionType,
+            withdrawalParam.token,
+            withdrawalParam.amount,
+            withdrawalParam.recipient,
+            withdrawalParam.expireTime
         );
     }
 

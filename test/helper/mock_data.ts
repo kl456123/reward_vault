@@ -53,6 +53,34 @@ export async function generateWithdrawalMockData(
   return { withdrawalData, withdrawalSignature };
 }
 
+export async function generateWithdrawalV2MockData(
+  recipient: string,
+  tokenAddr: string,
+  rewardVaultAddr: string,
+  chainId: bigint,
+  signer: Signer
+) {
+  const withdrawalData = {
+    withdrawId: ethers.toBigInt(ethers.randomBytes(32)),
+    accountId: 0n,
+    actionType: ActionType.WithdrawV2,
+    token: tokenAddr,
+    amount: ethers.parseUnits("40", 18),
+    recipient,
+    expireTime: BigInt(Math.ceil(Date.now() / 1000) + 10000),
+  };
+
+  const withdrawalSignature = await generateSignature(
+    ActionType.WithdrawV2,
+    withdrawalData,
+    signer,
+    rewardVaultAddr,
+    chainId
+  );
+
+  return { withdrawalData, withdrawalSignature };
+}
+
 export async function generateClaimMockData(
   recipient: string,
   tokenAddr: string,

@@ -1,9 +1,15 @@
 import { ethers, Signer } from "ethers";
-import { DepositData, WithdrawalData, ClaimData, ActionType } from "./types";
+import {
+  DepositData,
+  WithdrawalData,
+  ClaimData,
+  WithdrawalV2Data,
+  ActionType,
+} from "./types";
 
 export async function generateSignature(
   actionType: ActionType,
-  value: DepositData | WithdrawalData | ClaimData,
+  value: DepositData | WithdrawalData | ClaimData | WithdrawalV2Data,
   signer: Signer,
   verifyingContract: string,
   chainId: bigint
@@ -40,6 +46,20 @@ export async function generateSignature(
         WithdrawalData: [
           { name: "withdrawId", type: "uint256" },
           { name: "projectId", type: "uint256" },
+          { name: "token", type: "address" },
+          { name: "amount", type: "uint256" },
+          { name: "recipient", type: "address" },
+          { name: "expireTime", type: "uint256" },
+        ],
+      };
+      break;
+    }
+    case ActionType.WithdrawV2: {
+      types = {
+        WithdrawalData: [
+          { name: "withdrawId", type: "uint256" },
+          { name: "accountId", type: "uint256" },
+          { name: "actionType", type: "uint8" },
           { name: "token", type: "address" },
           { name: "amount", type: "uint256" },
           { name: "recipient", type: "address" },
