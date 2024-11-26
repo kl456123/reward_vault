@@ -73,7 +73,7 @@ note that some contracts/EOA deployed on following chains have different address
 
 - bsc_test
 
-  - RewardVault: 0x7870F32cB5B8DfEa244AfE2E9aD0c0fef6cDa6Cb
+  - RewardVault: ~~0x7870F32cB5B8DfEa244AfE2E9aD0c0fef6cDa6Cb~~ 0x3ac61D44093B6D5C7E78A1186097122E539c802b
   - TransparentUpgradeableProxy: 0x15a40246c9dCdF80D5ae58c791719D68a8C5576E
   - ProxyAdmin: 0x41798f63d1cAae9Ce65AB492acd619451AB21E77
   - initOwner: 0xbD11861D13caFa8Ad6e143DA7034f8A907CD47a8

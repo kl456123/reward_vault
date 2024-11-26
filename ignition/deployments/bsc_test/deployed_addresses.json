@@ -2,5 +2,8 @@
   "RewardVault#RewardVault": "0x7870F32cB5B8DfEa244AfE2E9aD0c0fef6cDa6Cb",
   "RewardVault#TransparentUpgradeableProxy": "0x15a40246c9dCdF80D5ae58c791719D68a8C5576E",
   "RewardVault#RewardVaultProxy": "0x15a40246c9dCdF80D5ae58c791719D68a8C5576E",
-  "RewardVault#ProxyAdmin": "0x41798f63d1cAae9Ce65AB492acd619451AB21E77"
+  "RewardVault#ProxyAdmin": "0x41798f63d1cAae9Ce65AB492acd619451AB21E77",
+  "UpgradeModule#ProxyAdmin": "0x41798f63d1cAae9Ce65AB492acd619451AB21E77",
+  "UpgradeModule#TransparentUpgradeableProxy": "0x15a40246c9dCdF80D5ae58c791719D68a8C5576E",
+  "UpgradeModule#RewardVault": "0x3ac61D44093B6D5C7E78A1186097122E539c802b"
 }
